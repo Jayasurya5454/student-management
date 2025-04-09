@@ -33,7 +33,7 @@ jobs:
       - run:
           name: Build and Push Docker Image to ECR
           command: |
-            docker build -t my-app .
+            docker build -t my-app ./frontend  
             docker tag my-app:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME:latest
             docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME:latest
 
