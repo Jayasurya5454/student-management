@@ -5,7 +5,7 @@ jobs:
     docker:
       - image: docker:latest
     steps:
-      - setup_remote_docker  # Removed version to use the default supported Docker version
+      - setup_remote_docker
       - checkout
 
       # Install AWS CLI
@@ -15,7 +15,7 @@ jobs:
             apk update
             apk add --no-cache aws-cli
 
-      # Configure AWS CLI with Environment Variables
+      # Configure AWS CLI
       - run:
           name: Configure AWS CLI
           command: |
@@ -23,22 +23,75 @@ jobs:
             aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
             aws configure set region $AWS_REGION
 
+      # Ensure ECR Repository Exists
+      - run:
+          name: Ensure ECR Repository Exists
+          command: |
+            aws ecr describe-repositories --repository-names $ECR_REPOSITORY_NAME || \
+            aws ecr create-repository --repository-name $ECR_REPOSITORY_NAME
+
       # Log in to Amazon ECR
       - run:
           name: Log in to Amazon ECR
           command: |
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-      # Build and Push Docker Image
+      # Build and Push Docker Image to ECR
       - run:
           name: Build and Push Docker Image to ECR
           command: |
-            docker build -t my-app ./frontend  
+            docker build -t my-app ./frontend
             docker tag my-app:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME:latest
             docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME:latest
 
+  terraform_workflow:
+    docker:
+      - image: hashicorp/terraform:light
+    steps:
+      - checkout
+
+      # Install AWS CLI
+      - run:
+          name: Install AWS CLI
+          command: |
+            apk update
+            apk add --no-cache aws-cli
+
+      # Configure AWS CLI
+      - run:
+          name: Configure AWS CLI
+          command: |
+            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+            aws configure set region $AWS_REGION
+
+      # Initialize Terraform
+      - run:
+          name: Terraform Init
+          command: terraform init
+
+      # Plan Terraform Infrastructure
+      - run:
+          name: Terraform Plan
+          command: terraform plan -out=tfplan
+
+      # Apply Terraform Infrastructure
+      - run:
+          name: Terraform Apply
+          command: terraform apply -auto-approve tfplan
+          when: on_hold
+
+      # Destroy Terraform Infrastructure
+      - run:
+          name: Terraform Destroy
+          command: terraform destroy -auto-approve
+          when: on_hold
+
 workflows:
   version: 2
-  ecr_deployment:
+  ecr_and_terraform:
     jobs:
       - build_and_push_ecr
+      - terraform_workflow:
+          requires:
+            - build_and_push_ecr
