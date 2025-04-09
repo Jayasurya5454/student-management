@@ -3,7 +3,7 @@ provider "aws" {
 }
 terraform {
   backend "s3" {
-    bucket = "tf-rp-states"
+    bucket = "pre-tf-rp-states"
     key    = "jayasurya/terraform.tfstate"
     region = "us-east-1"
     
