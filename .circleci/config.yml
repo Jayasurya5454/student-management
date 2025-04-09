@@ -79,19 +79,21 @@ jobs:
       - run:
           name: Terraform Apply
           command: terraform apply -auto-approve tfplan
-          when: on_hold
 
       # Destroy Terraform Infrastructure
       - run:
           name: Terraform Destroy
           command: terraform destroy -auto-approve
-          when: on_hold
 
 workflows:
   version: 2
   ecr_and_terraform:
     jobs:
       - build_and_push_ecr
-      - terraform_workflow:
+      - hold:
+          type: approval
           requires:
             - build_and_push_ecr
+      - terraform_workflow:
+          requires:
+            - hold
