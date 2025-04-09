@@ -73,12 +73,12 @@ jobs:
       # Plan Terraform Infrastructure
       - run:
           name: Terraform Plan
-          command: terraform plan -out=tfplan
+          command: terraform plan 
 
       # Apply Terraform Infrastructure
       - run:
           name: Terraform Apply
-          command: terraform apply -auto-approve tfplan
+          command: terraform apply -auto-approve 
 
       # Destroy Terraform Infrastructure
       - run:
