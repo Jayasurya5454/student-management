@@ -1,19 +1,16 @@
 provider "aws" {
-  region = "eu-north-1" # Replace with your region
+  region = "eu-north-1" 
 }
 
 
-# Replace with your existing ECR repository name
 variable "ecr_repo_name" {
   default = "jayasurya"
 }
 
-# Fetch the existing ECR repository details
 data "aws_ecr_repository" "existing_repo" {
   name = var.ecr_repo_name
 }
 
-# IAM Role for ECS Task Execution
 resource "aws_iam_role" "ecs_task_execution_role" {
   name               = "ecsTaskExecutionRole"
   assume_role_policy = data.aws_iam_policy_document.ecs_assume_role_policy.json
@@ -34,12 +31,10 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# ECS Cluster
 resource "aws_ecs_cluster" "my_cluster" {
   name = "my-ecs-cluster"
 }
 
-# ECS Task Definition
 resource "aws_ecs_task_definition" "my_task_definition" {
   family                   = "my-task"
   network_mode             = "awsvpc"
@@ -99,7 +94,6 @@ resource "aws_security_group" "ecs_service_sg" {
   }
 }
 
-# Output ECS Service Information
 output "ecs_cluster_name" {
   value = aws_ecs_cluster.my_cluster.name
 }
