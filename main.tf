@@ -1,14 +1,7 @@
 provider "aws" {
   region = "eu-north-1" # Replace with your region
 }
-terraform {
-  backend "s3" {
-    bucket = "pre-tf-rp-states"
-    key    = "jayasurya/terraform.tfstate"
-    region = "us-east-1"
-    
-  }
-}
+
 
 # Replace with your existing ECR repository name
 variable "ecr_repo_name" {
