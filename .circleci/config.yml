@@ -5,7 +5,7 @@ jobs:
     docker:
       - image: docker:latest
     steps:
-      - setup_remote_docker  # Removed version to use the default supported Docker version
+      - setup_remote_docker  # Use the default supported Docker version
       - checkout
 
       # Install AWS CLI
@@ -22,6 +22,13 @@ jobs:
             aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
             aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
             aws configure set region $AWS_REGION
+
+      # Ensure ECR Repository Exists
+      - run:
+          name: Ensure ECR Repository Exists
+          command: |
+            aws ecr describe-repositories --repository-names $ECR_REPOSITORY_NAME || \
+            aws ecr create-repository --repository-name $ECR_REPOSITORY_NAME
 
       # Log in to Amazon ECR
       - run:
